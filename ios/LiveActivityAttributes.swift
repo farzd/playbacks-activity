@@ -41,6 +41,8 @@ struct LiveActivityAttributes: ActivityAttributes {
   var contentFit: String?
   var progressSegmentActiveColor: String?
   var progressSegmentInactiveColor: String?
+  var buttonBackgroundColor: String?
+  var buttonTextColor: String?
 
   enum DynamicIslandTimerType: String, Codable {
     case circular

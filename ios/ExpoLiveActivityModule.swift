@@ -120,6 +120,12 @@ public class ExpoLiveActivityModule: Module {
     @Field
     var progressSegmentInactiveColor: String?
 
+    @Field
+    var buttonBackgroundColor: String?
+
+    @Field
+    var buttonTextColor: String?
+
     struct PaddingDetails: Record {
       @Field var top: Int?
       @Field var bottom: Int?
@@ -313,7 +319,9 @@ public class ExpoLiveActivityModule: Module {
           imageAlign: config.imageAlign,
           contentFit: config.contentFit,
           progressSegmentActiveColor: config.progressSegmentActiveColor,
-          progressSegmentInactiveColor: config.progressSegmentInactiveColor
+          progressSegmentInactiveColor: config.progressSegmentInactiveColor,
+          buttonBackgroundColor: config.buttonBackgroundColor,
+          buttonTextColor: config.buttonTextColor
         )
 
         let initialState = LiveActivityAttributes.ContentState(

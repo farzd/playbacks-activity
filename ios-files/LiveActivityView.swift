@@ -58,6 +58,54 @@ import WidgetKit
     }
   }
 
+  struct SubtitleButtonView: View {
+    let subtitle: String
+    let deepLinkUrl: String?
+    let buttonBackgroundColor: String?
+    let buttonTextColor: String?
+
+    private var backgroundColor: Color {
+      buttonBackgroundColor.map { Color(hex: $0) } ?? Color(hex: "fe5b25")
+    }
+
+    private var textColor: Color {
+      buttonTextColor.map { Color(hex: $0) } ?? .white
+    }
+
+    private var fullUrl: URL? {
+      guard let path = deepLinkUrl else { return nil }
+      // Get URL scheme from bundle
+      guard
+        let urlTypes = Bundle.main.infoDictionary?["CFBundleURLTypes"] as? [[String: Any]],
+        let schemes = urlTypes.first?["CFBundleURLSchemes"] as? [String],
+        let scheme = schemes.first
+      else { return nil }
+      return URL(string: "\(scheme)://\(path)")
+    }
+
+    var body: some View {
+      if let url = fullUrl {
+        Link(destination: url) {
+          buttonContent
+        }
+        .buttonStyle(.plain)
+      } else {
+        buttonContent
+      }
+    }
+
+    private var buttonContent: some View {
+      Text(subtitle)
+        .font(.system(size: 16))
+        .fontWeight(.semibold)
+        .foregroundStyle(textColor)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .background(backgroundColor)
+        .cornerRadius(8)
+    }
+  }
+
   struct LiveActivityView: View {
     let contentState: LiveActivityAttributes.ContentState
     let attributes: LiveActivityAttributes

@@ -104,6 +104,10 @@ export type LiveActivityConfig = {
   contentFit?: ImageContentFit
   progressSegmentActiveColor?: string
   progressSegmentInactiveColor?: string
+  /** Background color for the subtitle button (e.g., "#fe5b25") */
+  buttonBackgroundColor?: string
+  /** Text color for the subtitle button (e.g., "#ffffff") */
+  buttonTextColor?: string
 }
 
 export type ActivityTokenReceivedEvent = {

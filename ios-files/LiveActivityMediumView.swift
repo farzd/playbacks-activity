@@ -47,9 +47,18 @@ struct LiveActivityMediumView: View {
             .modifier(ConditionalForegroundViewModifier(color: attributes.titleColor))
 
           if let subtitle = contentState.subtitle {
-            Text(subtitle)
-              .font(.title3)
-              .modifier(ConditionalForegroundViewModifier(color: attributes.subtitleColor))
+            if attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil {
+              SubtitleButtonView(
+                subtitle: subtitle,
+                deepLinkUrl: attributes.deepLinkUrl,
+                buttonBackgroundColor: attributes.buttonBackgroundColor,
+                buttonTextColor: attributes.buttonTextColor
+              )
+            } else {
+              Text(subtitle)
+                .font(.title3)
+                .modifier(ConditionalForegroundViewModifier(color: attributes.subtitleColor))
+            }
           }
 
           if effectiveStretch {

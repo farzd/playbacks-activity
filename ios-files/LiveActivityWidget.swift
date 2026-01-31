@@ -72,6 +72,8 @@ public struct LiveActivityAttributes: ActivityAttributes {
   var contentFit: String?
   var progressSegmentActiveColor: String?
   var progressSegmentInactiveColor: String?
+  var buttonBackgroundColor: String?
+  var buttonTextColor: String?
 
   public init(
     name: String,
@@ -96,7 +98,9 @@ public struct LiveActivityAttributes: ActivityAttributes {
     imageAlign: String? = nil,
     contentFit: String? = nil,
     progressSegmentActiveColor: String? = nil,
-    progressSegmentInactiveColor: String? = nil
+    progressSegmentInactiveColor: String? = nil,
+    buttonBackgroundColor: String? = nil,
+    buttonTextColor: String? = nil
   ) {
     self.name = name
     self.backgroundColor = backgroundColor
@@ -121,6 +125,8 @@ public struct LiveActivityAttributes: ActivityAttributes {
     self.contentFit = contentFit
     self.progressSegmentActiveColor = progressSegmentActiveColor
     self.progressSegmentInactiveColor = progressSegmentInactiveColor
+    self.buttonBackgroundColor = buttonBackgroundColor
+    self.buttonTextColor = buttonTextColor
   }
 
   public enum DynamicIslandTimerType: String, Codable {
@@ -167,7 +173,7 @@ public struct LiveActivityWidget: Widget {
     } dynamicIsland: { context in
       DynamicIsland {
         DynamicIslandExpandedRegion(.leading, priority: 1) {
-          dynamicIslandExpandedLeading(title: context.state.title, subtitle: context.state.subtitle)
+          dynamicIslandExpandedLeading(title: context.state.title, subtitle: context.state.subtitle, attributes: context.attributes)
             .dynamicIsland(verticalPlacement: .belowIfTooWide)
             .padding(.leading, 5)
             .applyWidgetURL(from: context.attributes.deepLinkUrl)
@@ -300,7 +306,7 @@ public struct LiveActivityWidget: Widget {
     }
   }
 
-  private func dynamicIslandExpandedLeading(title: String, subtitle: String?) -> some View {
+  private func dynamicIslandExpandedLeading(title: String, subtitle: String?, attributes: LiveActivityAttributes) -> some View {
     VStack(alignment: .leading) {
       Spacer()
       Text(title)
@@ -308,10 +314,19 @@ public struct LiveActivityWidget: Widget {
         .foregroundStyle(.white)
         .fontWeight(.semibold)
       if let subtitle {
-        Text(subtitle)
-          .font(.title3)
-          .minimumScaleFactor(0.8)
-          .foregroundStyle(.white.opacity(0.75))
+        if attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil {
+          SubtitleButtonView(
+            subtitle: subtitle,
+            deepLinkUrl: attributes.deepLinkUrl,
+            buttonBackgroundColor: attributes.buttonBackgroundColor,
+            buttonTextColor: attributes.buttonTextColor
+          )
+        } else {
+          Text(subtitle)
+            .font(.title3)
+            .minimumScaleFactor(0.8)
+            .foregroundStyle(.white.opacity(0.75))
+        }
       }
       Spacer()
     }
