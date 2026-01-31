@@ -420,18 +420,16 @@ struct ElapsedTimerText: View {
 // MARK: - Previews
 
 #if DEBUG
-@available(iOS 16.2, *)
-#Preview("Live Activity - Recording", as: .content, using: LiveActivityAttributes.preview) {
-  LiveActivityWidget()
-} contentStates: {
-  LiveActivityAttributes.ContentState.previewRecording
-  LiveActivityAttributes.ContentState.previewPaused
-  LiveActivityAttributes.ContentState.previewLimitReached
-}
-
-extension LiveActivityAttributes {
-  static var preview: LiveActivityAttributes {
-    LiveActivityAttributes(
+@available(iOS 17.0, *)
+#Preview("Recording") {
+  LiveActivityMediumView(
+    contentState: .init(
+      title: "Recording...",
+      subtitle: "Save",
+      imageName: "logo_live_activity_image",
+      elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-754).timeIntervalSince1970 * 1000
+    ),
+    attributes: .init(
       name: "Preview",
       backgroundColor: "#faf9f6",
       titleColor: "#000000",
@@ -439,43 +437,65 @@ extension LiveActivityAttributes {
       deepLinkUrl: "/liveactivity/save",
       buttonBackgroundColor: "#fe5b25",
       buttonTextColor: "#ffffff"
-    )
-  }
+    ),
+    imageContainerSize: .constant(nil),
+    alignedImage: { _, _, _ in AnyView(EmptyView()) }
+  )
+  .background(Color(hex: "#faf9f6"))
+  .frame(width: 360, height: 160)
 }
 
-extension LiveActivityAttributes.ContentState {
-  static var previewRecording: LiveActivityAttributes.ContentState {
-    LiveActivityAttributes.ContentState(
-      title: "Recording...",
-      subtitle: "Save",
-      imageName: "logo_live_activity_image",
-      dynamicIslandImageName: "dynamic_island_image",
-      elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-754).timeIntervalSince1970 * 1000
-    )
-  }
-
-  static var previewPaused: LiveActivityAttributes.ContentState {
-    LiveActivityAttributes.ContentState(
+@available(iOS 17.0, *)
+#Preview("Paused") {
+  LiveActivityMediumView(
+    contentState: .init(
       title: "Paused",
       subtitle: "Save",
       imageName: "logo_live_activity_image",
-      dynamicIslandImageName: "dynamic_island_image",
       elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-1234).timeIntervalSince1970 * 1000,
       pausedAtInMilliseconds: Date().timeIntervalSince1970 * 1000,
       totalPausedDurationInMilliseconds: 60000
-    )
-  }
+    ),
+    attributes: .init(
+      name: "Preview",
+      backgroundColor: "#faf9f6",
+      titleColor: "#000000",
+      progressViewLabelColor: "#000000",
+      deepLinkUrl: "/liveactivity/save",
+      buttonBackgroundColor: "#fe5b25",
+      buttonTextColor: "#ffffff"
+    ),
+    imageContainerSize: .constant(nil),
+    alignedImage: { _, _, _ in AnyView(EmptyView()) }
+  )
+  .background(Color(hex: "#faf9f6"))
+  .frame(width: 360, height: 160)
+}
 
-  static var previewLimitReached: LiveActivityAttributes.ContentState {
-    LiveActivityAttributes.ContentState(
+@available(iOS 17.0, *)
+#Preview("Limit Reached") {
+  LiveActivityMediumView(
+    contentState: .init(
       title: "Paused",
       subtitle: "Save",
       imageName: "logo_live_activity_image",
-      dynamicIslandImageName: "dynamic_island_image",
       elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-3600).timeIntervalSince1970 * 1000,
       pausedAtInMilliseconds: Date().timeIntervalSince1970 * 1000,
       limitText: "1 hour limit reached!"
-    )
-  }
+    ),
+    attributes: .init(
+      name: "Preview",
+      backgroundColor: "#faf9f6",
+      titleColor: "#000000",
+      progressViewLabelColor: "#000000",
+      deepLinkUrl: "/liveactivity/save",
+      buttonBackgroundColor: "#fe5b25",
+      buttonTextColor: "#ffffff"
+    ),
+    imageContainerSize: .constant(nil),
+    alignedImage: { _, _, _ in AnyView(EmptyView()) }
+  )
+  .background(Color(hex: "#faf9f6"))
+  .frame(width: 360, height: 160)
 }
 #endif
