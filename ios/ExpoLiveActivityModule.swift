@@ -42,6 +42,15 @@ public class ExpoLiveActivityModule: Module {
 
     @Field
     var smallImageName: String?
+
+    @Field
+    var pausedAt: Double?
+
+    @Field
+    var totalPausedDuration: Double?
+
+    @Field
+    var limitText: String?
   }
 
   struct LiveActivityConfig: Record {
@@ -317,7 +326,10 @@ public class ExpoLiveActivityModule: Module {
           smallImageName: state.smallImageName,
           elapsedTimerStartDateInMilliseconds: state.progressBar?.elapsedTimer?.startDate,
           currentStep: state.progressBar?.currentStep,
-          totalSteps: state.progressBar?.totalSteps
+          totalSteps: state.progressBar?.totalSteps,
+          pausedAtInMilliseconds: state.pausedAt,
+          totalPausedDurationInMilliseconds: state.totalPausedDuration,
+          limitText: state.limitText
         )
 
         let activity = try Activity.request(
@@ -364,7 +376,10 @@ public class ExpoLiveActivityModule: Module {
           smallImageName: state.smallImageName,
           elapsedTimerStartDateInMilliseconds: state.progressBar?.elapsedTimer?.startDate,
           currentStep: state.progressBar?.currentStep,
-          totalSteps: state.progressBar?.totalSteps
+          totalSteps: state.progressBar?.totalSteps,
+          pausedAtInMilliseconds: state.pausedAt,
+          totalPausedDurationInMilliseconds: state.totalPausedDuration,
+          limitText: state.limitText
         )
         try await updateImages(state: state, newState: &newState)
         await activity.end(
@@ -400,7 +415,10 @@ public class ExpoLiveActivityModule: Module {
           smallImageName: state.smallImageName,
           elapsedTimerStartDateInMilliseconds: state.progressBar?.elapsedTimer?.startDate,
           currentStep: state.progressBar?.currentStep,
-          totalSteps: state.progressBar?.totalSteps
+          totalSteps: state.progressBar?.totalSteps,
+          pausedAtInMilliseconds: state.pausedAt,
+          totalPausedDurationInMilliseconds: state.totalPausedDuration,
+          limitText: state.limitText
         )
         try await updateImages(state: state, newState: &newState)
         await activity.update(ActivityContent(state: newState, staleDate: nil))

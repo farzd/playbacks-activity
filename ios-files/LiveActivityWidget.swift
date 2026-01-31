@@ -14,6 +14,9 @@ public struct LiveActivityAttributes: ActivityAttributes {
     var elapsedTimerStartDateInMilliseconds: Double?
     var currentStep: Int?
     var totalSteps: Int?
+    var pausedAtInMilliseconds: Double?
+    var totalPausedDurationInMilliseconds: Double?
+    var limitText: String?
 
     public init(
       title: String,
@@ -25,7 +28,10 @@ public struct LiveActivityAttributes: ActivityAttributes {
       smallImageName: String? = nil,
       elapsedTimerStartDateInMilliseconds: Double? = nil,
       currentStep: Int? = nil,
-      totalSteps: Int? = nil
+      totalSteps: Int? = nil,
+      pausedAtInMilliseconds: Double? = nil,
+      totalPausedDurationInMilliseconds: Double? = nil,
+      limitText: String? = nil
     ) {
       self.title = title
       self.subtitle = subtitle
@@ -37,6 +43,9 @@ public struct LiveActivityAttributes: ActivityAttributes {
       self.elapsedTimerStartDateInMilliseconds = elapsedTimerStartDateInMilliseconds
       self.currentStep = currentStep
       self.totalSteps = totalSteps
+      self.pausedAtInMilliseconds = pausedAtInMilliseconds
+      self.totalPausedDurationInMilliseconds = totalPausedDurationInMilliseconds
+      self.limitText = limitText
     }
   }
 
@@ -172,12 +181,22 @@ public struct LiveActivityWidget: Widget {
         }
         DynamicIslandExpandedRegion(.bottom) {
           if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
-            ElapsedTimerText(
-              startTimeMilliseconds: startDate,
-              color: context.attributes.progressViewTint.map { Color(hex: $0) } ?? .white
-            )
-            .font(.title2)
-            .fontWeight(.semibold)
+            VStack(spacing: 2) {
+              ElapsedTimerText(
+                startTimeMilliseconds: startDate,
+                color: context.attributes.progressViewTint.map { Color(hex: $0) } ?? .white,
+                pausedAtInMilliseconds: context.state.pausedAtInMilliseconds,
+                totalPausedDurationInMilliseconds: context.state.totalPausedDurationInMilliseconds
+              )
+              .font(.title2)
+              .fontWeight(.semibold)
+
+              if let limitText = context.state.limitText {
+                Text(limitText)
+                  .font(.system(size: 14))
+                  .foregroundStyle(Color(hex: "757575"))
+              }
+            }
             .padding(.top, 5)
             .padding(.horizontal, 5)
             .applyWidgetURL(from: context.attributes.deepLinkUrl)
@@ -205,7 +224,9 @@ public struct LiveActivityWidget: Widget {
         if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
           ElapsedTimerText(
             startTimeMilliseconds: startDate,
-            color: nil
+            color: nil,
+            pausedAtInMilliseconds: context.state.pausedAtInMilliseconds,
+            totalPausedDurationInMilliseconds: context.state.totalPausedDurationInMilliseconds
           )
           .font(.system(size: 15))
           .minimumScaleFactor(0.8)
@@ -229,7 +250,9 @@ public struct LiveActivityWidget: Widget {
         if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
           ElapsedTimerText(
             startTimeMilliseconds: startDate,
-            color: context.attributes.progressViewTint.map { Color(hex: $0) }
+            color: context.attributes.progressViewTint.map { Color(hex: $0) },
+            pausedAtInMilliseconds: context.state.pausedAtInMilliseconds,
+            totalPausedDurationInMilliseconds: context.state.totalPausedDurationInMilliseconds
           )
           .font(.system(size: 11))
           .minimumScaleFactor(0.6)
@@ -343,17 +366,31 @@ public struct LiveActivityWidget: Widget {
 struct ElapsedTimerText: View {
   let startTimeMilliseconds: Double
   let color: Color?
+  var pausedAtInMilliseconds: Double? = nil
+  var totalPausedDurationInMilliseconds: Double? = nil
 
   private var startTime: Date {
     Date(timeIntervalSince1970: startTimeMilliseconds / 1000)
   }
 
+  private var adjustedStartTime: Date {
+    // Offset the start time by total paused duration to show correct elapsed time
+    let totalPausedSeconds = (totalPausedDurationInMilliseconds ?? 0) / 1000
+    return startTime.addingTimeInterval(totalPausedSeconds)
+  }
+
+  private var pauseTime: Date? {
+    guard let pausedAt = pausedAtInMilliseconds else { return nil }
+    return Date(timeIntervalSince1970: pausedAt / 1000)
+  }
+
   var body: some View {
     // Use Text with timerInterval for Live Activities - iOS handles the updates automatically
-    // The range goes from startTime to a far future date, with countsDown: false to count UP
+    // The range goes from adjustedStartTime to a far future date, with countsDown: false to count UP
+    // pauseTime freezes the timer display when set (during pause state)
     Text(
-      timerInterval: startTime ... Date.distantFuture,
-      pauseTime: nil,
+      timerInterval: adjustedStartTime ... Date.distantFuture,
+      pauseTime: pauseTime,
       countsDown: false,
       showsHours: true
     )

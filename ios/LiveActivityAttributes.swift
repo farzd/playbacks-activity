@@ -13,6 +13,9 @@ struct LiveActivityAttributes: ActivityAttributes {
     var elapsedTimerStartDateInMilliseconds: Double?
     var currentStep: Int?
     var totalSteps: Int?
+    var pausedAtInMilliseconds: Double?
+    var totalPausedDurationInMilliseconds: Double?
+    var limitText: String?
   }
 
   var name: String

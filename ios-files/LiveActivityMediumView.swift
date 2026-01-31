@@ -65,12 +65,22 @@ struct LiveActivityMediumView: View {
                 inactiveColor: attributes.segmentInactiveColor
               )
             } else if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
-              ElapsedTimerText(
-                startTimeMilliseconds: startDate,
-                color: attributes.progressViewLabelColor.map { Color(hex: $0) }
-              )
-              .font(.title3)
-              .fontWeight(.medium)
+              VStack(alignment: .leading, spacing: 2) {
+                ElapsedTimerText(
+                  startTimeMilliseconds: startDate,
+                  color: attributes.progressViewLabelColor.map { Color(hex: $0) },
+                  pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
+                  totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
+                )
+                .font(.title3)
+                .fontWeight(.medium)
+
+                if let limitText = contentState.limitText {
+                  Text(limitText)
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color(hex: "757575"))
+                }
+              }
             } else if let date = contentState.timerEndDateInMilliseconds {
               ProgressView(timerInterval: Date.toTimerInterval(miliseconds: date))
                 .tint(progressViewTint)
@@ -103,12 +113,22 @@ struct LiveActivityMediumView: View {
             inactiveColor: attributes.segmentInactiveColor
           )
         } else if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
-          ElapsedTimerText(
-            startTimeMilliseconds: startDate,
-            color: attributes.progressViewLabelColor.map { Color(hex: $0) }
-          )
-          .font(.title2)
-          .fontWeight(.semibold)
+          VStack(alignment: .leading, spacing: 2) {
+            ElapsedTimerText(
+              startTimeMilliseconds: startDate,
+              color: attributes.progressViewLabelColor.map { Color(hex: $0) },
+              pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
+              totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
+            )
+            .font(.title2)
+            .fontWeight(.semibold)
+
+            if let limitText = contentState.limitText {
+              Text(limitText)
+                .font(.system(size: 14))
+                .foregroundStyle(Color(hex: "757575"))
+            }
+          }
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.top, 4)
         } else if let date = contentState.timerEndDateInMilliseconds {

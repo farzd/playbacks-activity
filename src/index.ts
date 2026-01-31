@@ -48,6 +48,12 @@ export type LiveActivityState = {
   imageName?: string
   dynamicIslandImageName?: string
   smallImageName?: string
+  /** Timestamp (milliseconds) when the activity was paused. Set to null to resume. */
+  pausedAt?: number | null
+  /** Total accumulated pause duration in milliseconds */
+  totalPausedDuration?: number
+  /** Text to display when a limit is reached (e.g., "1 hour limit reached!") */
+  limitText?: string | null
 }
 
 export type NativeLiveActivityState = {
