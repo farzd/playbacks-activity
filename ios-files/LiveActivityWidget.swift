@@ -416,3 +416,66 @@ struct ElapsedTimerText: View {
     .foregroundStyle(color ?? .primary)
   }
 }
+
+// MARK: - Previews
+
+#if DEBUG
+@available(iOS 16.2, *)
+#Preview("Live Activity - Recording", as: .content, using: LiveActivityAttributes.preview) {
+  LiveActivityWidget()
+} contentStates: {
+  LiveActivityAttributes.ContentState.previewRecording
+  LiveActivityAttributes.ContentState.previewPaused
+  LiveActivityAttributes.ContentState.previewLimitReached
+}
+
+extension LiveActivityAttributes {
+  static var preview: LiveActivityAttributes {
+    LiveActivityAttributes(
+      name: "Preview",
+      backgroundColor: "#faf9f6",
+      titleColor: "#000000",
+      progressViewLabelColor: "#000000",
+      deepLinkUrl: "/liveactivity/save",
+      buttonBackgroundColor: "#fe5b25",
+      buttonTextColor: "#ffffff"
+    )
+  }
+}
+
+extension LiveActivityAttributes.ContentState {
+  static var previewRecording: LiveActivityAttributes.ContentState {
+    LiveActivityAttributes.ContentState(
+      title: "Recording...",
+      subtitle: "Save",
+      imageName: "logo_live_activity_image",
+      dynamicIslandImageName: "dynamic_island_image",
+      elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-754).timeIntervalSince1970 * 1000
+    )
+  }
+
+  static var previewPaused: LiveActivityAttributes.ContentState {
+    LiveActivityAttributes.ContentState(
+      title: "Paused",
+      subtitle: "Save",
+      imageName: "logo_live_activity_image",
+      dynamicIslandImageName: "dynamic_island_image",
+      elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-1234).timeIntervalSince1970 * 1000,
+      pausedAtInMilliseconds: Date().timeIntervalSince1970 * 1000,
+      totalPausedDurationInMilliseconds: 60000
+    )
+  }
+
+  static var previewLimitReached: LiveActivityAttributes.ContentState {
+    LiveActivityAttributes.ContentState(
+      title: "Paused",
+      subtitle: "Save",
+      imageName: "logo_live_activity_image",
+      dynamicIslandImageName: "dynamic_island_image",
+      elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-3600).timeIntervalSince1970 * 1000,
+      pausedAtInMilliseconds: Date().timeIntervalSince1970 * 1000,
+      limitText: "1 hour limit reached!"
+    )
+  }
+}
+#endif

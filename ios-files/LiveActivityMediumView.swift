@@ -99,3 +99,88 @@ struct LiveActivityMediumView: View {
     .padding(padding)
   }
 }
+
+// MARK: - Preview
+
+#if DEBUG
+@available(iOS 16.2, *)
+struct LiveActivityMediumView_Previews: PreviewProvider {
+  static var previews: some View {
+    Group {
+      // Recording state
+      LiveActivityMediumView(
+        contentState: .init(
+          title: "Recording...",
+          subtitle: "Save",
+          imageName: "logo_live_activity_image",
+          elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-754).timeIntervalSince1970 * 1000
+        ),
+        attributes: .init(
+          name: "Preview",
+          backgroundColor: "#faf9f6",
+          titleColor: "#000000",
+          progressViewLabelColor: "#000000",
+          deepLinkUrl: "/liveactivity/save",
+          buttonBackgroundColor: "#fe5b25",
+          buttonTextColor: "#ffffff"
+        ),
+        imageContainerSize: .constant(nil),
+        alignedImage: { _, _, _ in AnyView(EmptyView()) }
+      )
+      .background(Color(hex: "#faf9f6"))
+      .previewDisplayName("Recording")
+
+      // Paused state
+      LiveActivityMediumView(
+        contentState: .init(
+          title: "Paused",
+          subtitle: "Save",
+          imageName: "logo_live_activity_image",
+          elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-1234).timeIntervalSince1970 * 1000,
+          pausedAtInMilliseconds: Date().timeIntervalSince1970 * 1000,
+          totalPausedDurationInMilliseconds: 60000
+        ),
+        attributes: .init(
+          name: "Preview",
+          backgroundColor: "#faf9f6",
+          titleColor: "#000000",
+          progressViewLabelColor: "#000000",
+          deepLinkUrl: "/liveactivity/save",
+          buttonBackgroundColor: "#fe5b25",
+          buttonTextColor: "#ffffff"
+        ),
+        imageContainerSize: .constant(nil),
+        alignedImage: { _, _, _ in AnyView(EmptyView()) }
+      )
+      .background(Color(hex: "#faf9f6"))
+      .previewDisplayName("Paused")
+
+      // Limit reached state
+      LiveActivityMediumView(
+        contentState: .init(
+          title: "Paused",
+          subtitle: "Save",
+          imageName: "logo_live_activity_image",
+          elapsedTimerStartDateInMilliseconds: Date().addingTimeInterval(-3600).timeIntervalSince1970 * 1000,
+          pausedAtInMilliseconds: Date().timeIntervalSince1970 * 1000,
+          limitText: "1 hour limit reached!"
+        ),
+        attributes: .init(
+          name: "Preview",
+          backgroundColor: "#faf9f6",
+          titleColor: "#000000",
+          progressViewLabelColor: "#000000",
+          deepLinkUrl: "/liveactivity/save",
+          buttonBackgroundColor: "#fe5b25",
+          buttonTextColor: "#ffffff"
+        ),
+        imageContainerSize: .constant(nil),
+        alignedImage: { _, _, _ in AnyView(EmptyView()) }
+      )
+      .background(Color(hex: "#faf9f6"))
+      .previewDisplayName("Limit Reached")
+    }
+    .previewLayout(.fixed(width: 360, height: 160))
+  }
+}
+#endif
