@@ -11,144 +11,89 @@ struct LiveActivityMediumView: View {
     contentState.imageName != nil
   }
 
-  private var isLeftImage: Bool {
-    (attributes.imagePosition ?? "right").hasPrefix("left")
-  }
-
-  private var isStretch: Bool {
-    (attributes.imagePosition ?? "right").contains("Stretch")
-  }
-
-  private var effectiveStretch: Bool {
-    isStretch && hasImage
-  }
-
   private var progressViewTint: Color? {
     attributes.progressViewTint.map { Color(hex: $0) }
   }
 
+  private var hasButton: Bool {
+    contentState.subtitle != nil && (attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil)
+  }
+
   var body: some View {
-    let padding = attributes.resolvedPadding(defaultPadding: 24)
+    let padding = attributes.resolvedPadding(defaultPadding: 16)
 
     let _ = contentState.logSegmentedProgressWarningIfNeeded()
 
-    VStack(alignment: .leading) {
-      HStack(alignment: .center) {
-        if hasImage, isLeftImage {
-          if let imageName = contentState.imageName {
-            alignedImage(imageName, .leading, false)
-          }
+    HStack(alignment: .center, spacing: 12) {
+      // Left column: Logo, Title, Timer, Warnings
+      VStack(alignment: .leading, spacing: 4) {
+        // Logo at top
+        if let imageName = contentState.imageName {
+          Image.dynamic(assetNameOrPath: imageName)
+            .resizable()
+            .scaledToFit()
+            .frame(height: 24)
         }
 
-        VStack(alignment: .leading, spacing: 2) {
-          Text(contentState.title)
-            .font(.title2)
-            .fontWeight(.semibold)
-            .modifier(ConditionalForegroundViewModifier(color: attributes.titleColor))
+        // Title
+        Text(contentState.title)
+          .font(.title3)
+          .fontWeight(.semibold)
+          .modifier(ConditionalForegroundViewModifier(color: attributes.titleColor))
 
-          if let subtitle = contentState.subtitle {
-            if attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil {
-              SubtitleButtonView(
-                subtitle: subtitle,
-                deepLinkUrl: attributes.deepLinkUrl,
-                buttonBackgroundColor: attributes.buttonBackgroundColor,
-                buttonTextColor: attributes.buttonTextColor
-              )
-            } else {
-              Text(subtitle)
-                .font(.title3)
-                .modifier(ConditionalForegroundViewModifier(color: attributes.subtitleColor))
-            }
-          }
-
-          if effectiveStretch {
-            if contentState.hasSegmentedProgress,
-               let currentStep = contentState.currentStep,
-               let totalSteps = contentState.totalSteps,
-               totalSteps > 0
-            {
-              SegmentedProgressView(
-                currentStep: currentStep,
-                totalSteps: totalSteps,
-                activeColor: attributes.segmentActiveColor,
-                inactiveColor: attributes.segmentInactiveColor
-              )
-            } else if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
-              VStack(alignment: .leading, spacing: 2) {
-                ElapsedTimerText(
-                  startTimeMilliseconds: startDate,
-                  color: attributes.progressViewLabelColor.map { Color(hex: $0) },
-                  pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
-                  totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
-                )
-                .font(.title3)
-                .fontWeight(.medium)
-
-                if let limitText = contentState.limitText {
-                  Text(limitText)
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color(hex: "757575"))
-                }
-              }
-            } else if let date = contentState.timerEndDateInMilliseconds {
-              ProgressView(timerInterval: Date.toTimerInterval(miliseconds: date))
-                .tint(progressViewTint)
-                .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
-            } else if let progress = contentState.progress {
-              ProgressView(value: progress)
-                .tint(progressViewTint)
-                .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
-            }
-          }
-        }.layoutPriority(1)
-
-        if hasImage, !isLeftImage {
-          if let imageName = contentState.imageName {
-            alignedImage(imageName, .trailing, false)
-          }
-        }
-      }
-
-      if !effectiveStretch {
-        if contentState.hasSegmentedProgress,
-           let currentStep = contentState.currentStep,
-           let totalSteps = contentState.totalSteps,
-           totalSteps > 0
-        {
+        // Timer
+        if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
+          ElapsedTimerText(
+            startTimeMilliseconds: startDate,
+            color: attributes.progressViewLabelColor.map { Color(hex: $0) },
+            pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
+            totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
+          )
+          .font(.title2)
+          .fontWeight(.semibold)
+        } else if contentState.hasSegmentedProgress,
+                  let currentStep = contentState.currentStep,
+                  let totalSteps = contentState.totalSteps,
+                  totalSteps > 0 {
           SegmentedProgressView(
             currentStep: currentStep,
             totalSteps: totalSteps,
             activeColor: attributes.segmentActiveColor,
             inactiveColor: attributes.segmentInactiveColor
           )
-        } else if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
-          VStack(alignment: .leading, spacing: 2) {
-            ElapsedTimerText(
-              startTimeMilliseconds: startDate,
-              color: attributes.progressViewLabelColor.map { Color(hex: $0) },
-              pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
-              totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
-            )
+        } else if let date = contentState.timerEndDateInMilliseconds {
+          Text(timerInterval: Date.toTimerInterval(miliseconds: date))
             .font(.title2)
             .fontWeight(.semibold)
-
-            if let limitText = contentState.limitText {
-              Text(limitText)
-                .font(.system(size: 14))
-                .foregroundStyle(Color(hex: "757575"))
-            }
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.top, 4)
-        } else if let date = contentState.timerEndDateInMilliseconds {
-          ProgressView(timerInterval: Date.toTimerInterval(miliseconds: date))
-            .tint(progressViewTint)
+            .monospacedDigit()
             .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
         } else if let progress = contentState.progress {
           ProgressView(value: progress)
             .tint(progressViewTint)
             .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
         }
+
+        // Warning/limit message
+        if let limitText = contentState.limitText {
+          Text(limitText)
+            .font(.system(size: 14))
+            .foregroundStyle(Color(hex: "ff3b30"))
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+
+      // Right column: Save button (vertically centered)
+      if let subtitle = contentState.subtitle, hasButton {
+        SubtitleButtonView(
+          subtitle: subtitle,
+          deepLinkUrl: attributes.deepLinkUrl,
+          buttonBackgroundColor: attributes.buttonBackgroundColor,
+          buttonTextColor: attributes.buttonTextColor
+        )
+      } else if let subtitle = contentState.subtitle {
+        Text(subtitle)
+          .font(.title3)
+          .modifier(ConditionalForegroundViewModifier(color: attributes.subtitleColor))
       }
     }
     .padding(padding)

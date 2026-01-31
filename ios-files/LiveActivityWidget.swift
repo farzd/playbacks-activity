@@ -173,13 +173,25 @@ public struct LiveActivityWidget: Widget {
     } dynamicIsland: { context in
       DynamicIsland {
         DynamicIslandExpandedRegion(.leading, priority: 1) {
-          dynamicIslandExpandedLeading(title: context.state.title, subtitle: context.state.subtitle, attributes: context.attributes)
-            .dynamicIsland(verticalPlacement: .belowIfTooWide)
-            .padding(.leading, 5)
-            .applyWidgetURL(from: context.attributes.deepLinkUrl)
+          dynamicIslandExpandedLeading(
+            imageName: context.state.imageName,
+            title: context.state.title
+          )
+          .dynamicIsland(verticalPlacement: .belowIfTooWide)
+          .padding(.leading, 5)
+          .applyWidgetURL(from: context.attributes.deepLinkUrl)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          if let imageName = context.state.imageName {
+          if let subtitle = context.state.subtitle,
+             context.attributes.buttonBackgroundColor != nil || context.attributes.deepLinkUrl != nil {
+            SubtitleButtonView(
+              subtitle: subtitle,
+              deepLinkUrl: context.attributes.deepLinkUrl,
+              buttonBackgroundColor: context.attributes.buttonBackgroundColor,
+              buttonTextColor: context.attributes.buttonTextColor
+            )
+            .padding(.trailing, 5)
+          } else if let imageName = context.state.imageName {
             dynamicIslandExpandedTrailing(imageName: imageName)
               .padding(.trailing, 5)
               .applyWidgetURL(from: context.attributes.deepLinkUrl)
@@ -200,7 +212,7 @@ public struct LiveActivityWidget: Widget {
               if let limitText = context.state.limitText {
                 Text(limitText)
                   .font(.system(size: 14))
-                  .foregroundStyle(Color(hex: "757575"))
+                  .foregroundStyle(Color(hex: "ff3b30"))
               }
             }
             .padding(.top, 5)
@@ -306,28 +318,19 @@ public struct LiveActivityWidget: Widget {
     }
   }
 
-  private func dynamicIslandExpandedLeading(title: String, subtitle: String?, attributes: LiveActivityAttributes) -> some View {
-    VStack(alignment: .leading) {
+  private func dynamicIslandExpandedLeading(imageName: String?, title: String) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
       Spacer()
+      if let imageName {
+        Image.dynamic(assetNameOrPath: imageName)
+          .resizable()
+          .scaledToFit()
+          .frame(height: 20)
+      }
       Text(title)
-        .font(.title2)
+        .font(.title3)
         .foregroundStyle(.white)
         .fontWeight(.semibold)
-      if let subtitle {
-        if attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil {
-          SubtitleButtonView(
-            subtitle: subtitle,
-            deepLinkUrl: attributes.deepLinkUrl,
-            buttonBackgroundColor: attributes.buttonBackgroundColor,
-            buttonTextColor: attributes.buttonTextColor
-          )
-        } else {
-          Text(subtitle)
-            .font(.title3)
-            .minimumScaleFactor(0.8)
-            .foregroundStyle(.white.opacity(0.75))
-        }
-      }
       Spacer()
     }
   }
