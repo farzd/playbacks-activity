@@ -226,7 +226,7 @@ public struct LiveActivityWidget: Widget {
     } dynamicIsland: { context in
       DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
-          Image("logo_live_activity_image")
+          Image.dynamic(assetNameOrPath: "dynamic_island_expanded_image")
             .resizable()
             .scaledToFit()
             .frame(height: 20)
@@ -278,21 +278,21 @@ public struct LiveActivityWidget: Widget {
             if let limitText = context.state.limitText {
               Text(limitText)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color(hex: "ff3b30"))
+                .foregroundStyle(.white)
             } else {
               Text(context.state.title)
                 .font(.system(size: 14))
-                .foregroundStyle(Color(hex: "8E8E93"))
+                .foregroundStyle(.white)
             }
           }
           .padding(.horizontal, 5)
           .padding(.top, 5)
         }
       } compactLeading: {
-        if let dynamicIslandImageName = context.state.dynamicIslandImageName {
-          resizableImage(imageName: dynamicIslandImageName)
-            .frame(maxWidth: 23, maxHeight: 23)
-        }
+        Image.dynamic(assetNameOrPath: "dynamic_island_image")
+          .resizable()
+          .scaledToFit()
+          .frame(maxWidth: 23, maxHeight: 23)
       } compactTrailing: {
         if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
           ElapsedTimerText(

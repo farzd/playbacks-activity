@@ -19,7 +19,7 @@ struct LiveActivityMediumView: View {
     VStack(alignment: .leading, spacing: 0) {
       // White header with logo
       HStack {
-        Image("logo_live_activity_image")
+        Image.dynamic(assetNameOrPath: "live_activity_image")
           .resizable()
           .scaledToFit()
           .frame(height: 26)
