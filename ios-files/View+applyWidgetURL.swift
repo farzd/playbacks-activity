@@ -15,7 +15,12 @@ private let cachedScheme: String? = {
 extension View {
   func applyWidgetURL(from urlString: String?) -> some View {
     applyIfPresent(urlString) { view, string in
-      applyIfPresent(cachedScheme) { view, scheme in
+      // If the string already contains a scheme (full URL), use it directly
+      if string.contains("://") {
+        return view.widgetURL(URL(string: string))
+      }
+      // Otherwise, prefix with the cached scheme
+      return applyIfPresent(cachedScheme) { view, scheme in
         view.widgetURL(URL(string: scheme + "://" + string))
       }
     }
