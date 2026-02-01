@@ -85,6 +85,18 @@ struct LiveActivityMediumView: View {
 
   private func makeDeepLinkURL(_ urlString: String?) -> URL? {
     guard let urlString = urlString else { return nil }
-    return URL(string: urlString)
+    // If the string already contains a scheme (full URL), use it directly
+    if urlString.contains("://") {
+      return URL(string: urlString)
+    }
+    // Otherwise, prefix with the app's URL scheme
+    guard
+      let urlTypes = Bundle.main.infoDictionary?["CFBundleURLTypes"] as? [[String: Any]],
+      let schemes = urlTypes.first?["CFBundleURLSchemes"] as? [String],
+      let scheme = schemes.first
+    else {
+      return nil
+    }
+    return URL(string: scheme + "://" + urlString)
   }
 }

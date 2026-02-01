@@ -160,6 +160,60 @@ public struct LiveActivityAttributes: ActivityAttributes {
   }
 }
 
+// MARK: - Dynamic Island Save Button
+
+@available(iOS 16.1, *)
+struct DynamicIslandSaveButton: View {
+  let subtitle: String
+  let deepLinkUrl: String?
+  let buttonBackgroundColor: String?
+  let buttonTextColor: String?
+
+  private var backgroundColor: Color {
+    buttonBackgroundColor.map { Color(hex: $0) } ?? Color(hex: "fe5b25")
+  }
+
+  private var textColor: Color {
+    buttonTextColor.map { Color(hex: $0) } ?? .white
+  }
+
+  private func makeDeepLinkURL(_ urlString: String?) -> URL? {
+    guard let urlString = urlString else { return nil }
+    if urlString.contains("://") {
+      return URL(string: urlString)
+    }
+    guard
+      let urlTypes = Bundle.main.infoDictionary?["CFBundleURLTypes"] as? [[String: Any]],
+      let schemes = urlTypes.first?["CFBundleURLSchemes"] as? [String],
+      let scheme = schemes.first
+    else {
+      return nil
+    }
+    return URL(string: scheme + "://" + urlString)
+  }
+
+  var body: some View {
+    if let url = makeDeepLinkURL(deepLinkUrl) {
+      Link(destination: url) {
+        buttonContent
+      }
+      .buttonStyle(.plain)
+    } else {
+      buttonContent
+    }
+  }
+
+  private var buttonContent: some View {
+    Text(subtitle)
+      .font(.system(size: 14, weight: .semibold))
+      .foregroundStyle(textColor)
+      .padding(.horizontal, 20)
+      .padding(.vertical, 8)
+      .background(backgroundColor)
+      .cornerRadius(8)
+  }
+}
+
 @available(iOS 16.1, *)
 public struct LiveActivityWidget: Widget {
   public var body: some WidgetConfiguration {
@@ -169,74 +223,75 @@ public struct LiveActivityWidget: Widget {
           context.attributes.backgroundColor.map { Color(hex: $0) }
         )
         .activitySystemActionForegroundColor(Color.black)
-        .applyWidgetURL(from: context.attributes.deepLinkUrl)
     } dynamicIsland: { context in
       DynamicIsland {
-        DynamicIslandExpandedRegion(.leading, priority: 1) {
-          dynamicIslandExpandedLeading(
-            imageName: context.state.imageName,
-            title: context.state.title
-          )
-          .dynamicIsland(verticalPlacement: .belowIfTooWide)
-          .padding(.leading, 5)
-          .applyWidgetURL(from: context.attributes.deepLinkUrl)
+        DynamicIslandExpandedRegion(.leading) {
+          Image("logo_live_activity_image")
+            .resizable()
+            .scaledToFit()
+            .frame(height: 20)
+            .padding(.leading, 5)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          if let subtitle = context.state.subtitle,
-             context.attributes.buttonBackgroundColor != nil || context.attributes.deepLinkUrl != nil {
-            SubtitleButtonView(
-              subtitle: subtitle,
-              deepLinkUrl: context.attributes.deepLinkUrl,
-              buttonBackgroundColor: context.attributes.buttonBackgroundColor,
-              buttonTextColor: context.attributes.buttonTextColor
-            )
-            .padding(.trailing, 5)
-          } else if let imageName = context.state.imageName {
-            dynamicIslandExpandedTrailing(imageName: imageName)
-              .padding(.trailing, 5)
-              .applyWidgetURL(from: context.attributes.deepLinkUrl)
-          }
+          EmptyView()
         }
         DynamicIslandExpandedRegion(.bottom) {
-          if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
-            VStack(spacing: 2) {
-              ElapsedTimerText(
-                startTimeMilliseconds: startDate,
-                color: context.attributes.progressViewTint.map { Color(hex: $0) } ?? .white,
-                pausedAtInMilliseconds: context.state.pausedAtInMilliseconds,
-                totalPausedDurationInMilliseconds: context.state.totalPausedDurationInMilliseconds
-              )
-              .font(.title2)
-              .fontWeight(.semibold)
+          VStack(alignment: .leading, spacing: 8) {
+            // Row 1: Timer (with dot) + Save button
+            HStack(alignment: .center, spacing: 12) {
+              // Timer with red dot
+              HStack(spacing: 6) {
+                Circle()
+                  .fill(Color(hex: "ff3b30"))
+                  .frame(width: 8, height: 8)
 
-              if let limitText = context.state.limitText {
-                Text(limitText)
-                  .font(.system(size: 14))
-                  .foregroundStyle(Color(hex: "ff3b30"))
+                if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
+                  ElapsedTimerText(
+                    startTimeMilliseconds: startDate,
+                    color: Color(hex: "ff3b30"),
+                    pausedAtInMilliseconds: context.state.pausedAtInMilliseconds,
+                    totalPausedDurationInMilliseconds: context.state.totalPausedDurationInMilliseconds
+                  )
+                  .font(.system(size: 24, weight: .medium, design: .monospaced))
+                } else if let date = context.state.timerEndDateInMilliseconds {
+                  Text(timerInterval: Date.toTimerInterval(miliseconds: date))
+                    .font(.system(size: 24, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color(hex: "ff3b30"))
+                }
+              }
+
+              Spacer()
+
+              // Save button
+              if let subtitle = context.state.subtitle,
+                 context.attributes.buttonBackgroundColor != nil || context.attributes.deepLinkUrl != nil {
+                DynamicIslandSaveButton(
+                  subtitle: subtitle,
+                  deepLinkUrl: context.attributes.deepLinkUrl,
+                  buttonBackgroundColor: context.attributes.buttonBackgroundColor,
+                  buttonTextColor: context.attributes.buttonTextColor
+                )
               }
             }
-            .padding(.top, 5)
-            .padding(.horizontal, 5)
-            .applyWidgetURL(from: context.attributes.deepLinkUrl)
-          } else if let date = context.state.timerEndDateInMilliseconds {
-            dynamicIslandExpandedBottom(
-              endDate: date, progressViewTint: context.attributes.progressViewTint
-            )
-            .padding(.horizontal, 5)
-            .applyWidgetURL(from: context.attributes.deepLinkUrl)
-          } else if let progress = context.state.progress {
-            dynamicIslandExpandedBottomProgress(
-              progress: progress, progressViewTint: context.attributes.progressViewTint
-            )
-            .padding(.horizontal, 5)
-            .applyWidgetURL(from: context.attributes.deepLinkUrl)
+
+            // Row 2: "Recording..." label or warning message
+            if let limitText = context.state.limitText {
+              Text(limitText)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color(hex: "ff3b30"))
+            } else {
+              Text(context.state.title)
+                .font(.system(size: 14))
+                .foregroundStyle(Color(hex: "8E8E93"))
+            }
           }
+          .padding(.horizontal, 5)
+          .padding(.top, 5)
         }
       } compactLeading: {
         if let dynamicIslandImageName = context.state.dynamicIslandImageName {
           resizableImage(imageName: dynamicIslandImageName)
             .frame(maxWidth: 23, maxHeight: 23)
-            .applyWidgetURL(from: context.attributes.deepLinkUrl)
         }
       } compactTrailing: {
         if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
@@ -251,18 +306,17 @@ public struct LiveActivityWidget: Widget {
           .fontWeight(.semibold)
           .frame(maxWidth: 60)
           .multilineTextAlignment(.trailing)
-          .applyWidgetURL(from: context.attributes.deepLinkUrl)
         } else if let date = context.state.timerEndDateInMilliseconds {
           compactTimer(
             endDate: date,
             timerType: context.attributes.timerType ?? .circular,
             progressViewTint: context.attributes.progressViewTint
-          ).applyWidgetURL(from: context.attributes.deepLinkUrl)
+          )
         } else if let progress = context.state.progress {
           compactProgress(
             progress: progress,
             progressViewTint: context.attributes.progressViewTint
-          ).applyWidgetURL(from: context.attributes.deepLinkUrl)
+          )
         }
       } minimal: {
         if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
@@ -274,18 +328,17 @@ public struct LiveActivityWidget: Widget {
           )
           .font(.system(size: 11))
           .minimumScaleFactor(0.6)
-          .applyWidgetURL(from: context.attributes.deepLinkUrl)
         } else if let date = context.state.timerEndDateInMilliseconds {
           compactTimer(
             endDate: date,
             timerType: context.attributes.timerType ?? .circular,
             progressViewTint: context.attributes.progressViewTint
-          ).applyWidgetURL(from: context.attributes.deepLinkUrl)
+          )
         } else if let progress = context.state.progress {
           compactProgress(
             progress: progress,
             progressViewTint: context.attributes.progressViewTint
-          ).applyWidgetURL(from: context.attributes.deepLinkUrl)
+          )
         }
       }
     }
