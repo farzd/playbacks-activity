@@ -73,14 +73,8 @@ import WidgetKit
     }
 
     private var fullUrl: URL? {
-      guard let path = deepLinkUrl else { return nil }
-      // Get URL scheme from bundle
-      guard
-        let urlTypes = Bundle.main.infoDictionary?["CFBundleURLTypes"] as? [[String: Any]],
-        let schemes = urlTypes.first?["CFBundleURLSchemes"] as? [String],
-        let scheme = schemes.first
-      else { return nil }
-      return URL(string: "\(scheme)://\(path)")
+      guard let urlString = deepLinkUrl else { return nil }
+      return URL(string: urlString)
     }
 
     var body: some View {

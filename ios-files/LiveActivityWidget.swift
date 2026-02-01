@@ -392,7 +392,6 @@ struct ElapsedTimerText: View {
   }
 
   private var adjustedStartTime: Date {
-    // Offset the start time by total paused duration to show correct elapsed time
     let totalPausedSeconds = (totalPausedDurationInMilliseconds ?? 0) / 1000
     return startTime.addingTimeInterval(totalPausedSeconds)
   }
@@ -402,18 +401,36 @@ struct ElapsedTimerText: View {
     return Date(timeIntervalSince1970: pausedAt / 1000)
   }
 
+  private var formattedPausedTime: String {
+    guard let pauseTime = pauseTime else { return "0:00" }
+    let elapsed = Int(pauseTime.timeIntervalSince(adjustedStartTime))
+    let total = max(0, elapsed)
+    let hours = total / 3600
+    let minutes = (total % 3600) / 60
+    let seconds = total % 60
+
+    if hours > 0 {
+      return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+      return String(format: "%d:%02d", minutes, seconds)
+    }
+  }
+
   var body: some View {
-    // Use Text with timerInterval for Live Activities - iOS handles the updates automatically
-    // The range goes from adjustedStartTime to a far future date, with countsDown: false to count UP
-    // pauseTime freezes the timer display when set (during pause state)
-    Text(
-      timerInterval: adjustedStartTime ... Date.distantFuture,
-      pauseTime: pauseTime,
-      countsDown: false,
-      showsHours: true
-    )
-    .monospacedDigit()
-    .foregroundStyle(color ?? .primary)
+    if pauseTime != nil {
+      // When paused, show static zero-padded time
+      Text(formattedPausedTime)
+        .foregroundStyle(color ?? .primary)
+    } else {
+      // When running, use system timer (iOS handles updates automatically)
+      Text(
+        timerInterval: adjustedStartTime ... Date.distantFuture,
+        pauseTime: nil,
+        countsDown: false,
+        showsHours: true
+      )
+      .foregroundStyle(color ?? .primary)
+    }
   }
 }
 

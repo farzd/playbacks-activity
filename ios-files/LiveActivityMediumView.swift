@@ -7,96 +7,84 @@ struct LiveActivityMediumView: View {
   @Binding var imageContainerSize: CGSize?
   let alignedImage: (String, HorizontalAlignment, Bool) -> AnyView
 
-  private var hasImage: Bool {
-    contentState.imageName != nil
-  }
-
-  private var progressViewTint: Color? {
-    attributes.progressViewTint.map { Color(hex: $0) }
-  }
-
   private var hasButton: Bool {
     contentState.subtitle != nil && (attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil)
   }
 
+  private var timerColor: Color {
+    Color(hex: "ff3b30")
+  }
+
   var body: some View {
-    let padding = attributes.resolvedPadding(defaultPadding: 16)
+    VStack(alignment: .leading, spacing: 0) {
+      // White header with logo
+      HStack {
+        Image("logo_live_activity_image")
+          .resizable()
+          .scaledToFit()
+          .frame(height: 26)
+        Spacer()
+      }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 12)
+      .background(Color.white)
 
-    let _ = contentState.logSegmentedProgressWarningIfNeeded()
+      // Main content area
+      VStack(alignment: .leading, spacing: 8) {
+        // Row 1: Timer (with dot) + Save button
+        HStack(alignment: .center, spacing: 16) {
+          // Timer with red dot
+          HStack(spacing: 8) {
+            Circle()
+              .fill(timerColor)
+              .frame(width: 10, height: 10)
 
-    HStack(alignment: .center, spacing: 12) {
-      // Left column: Logo, Title, Timer, Warnings
-      VStack(alignment: .leading, spacing: 4) {
-        // Logo at top
-        if let imageName = contentState.imageName {
-          Image.dynamic(assetNameOrPath: imageName)
-            .resizable()
-            .scaledToFit()
-            .frame(height: 24)
+            if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
+              ElapsedTimerText(
+                startTimeMilliseconds: startDate,
+                color: timerColor,
+                pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
+                totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
+              )
+              .font(.system(size: 32, weight: .medium, design: .monospaced))
+            }
+          }
+
+          Spacer()
+
+          // Save button
+          if let subtitle = contentState.subtitle, hasButton {
+            Link(destination: makeDeepLinkURL(attributes.deepLinkUrl) ?? URL(string: "about:blank")!) {
+              Text(subtitle)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(Color.white)
+                .padding(.horizontal, 36)
+                .padding(.vertical, 14)
+                .background(Color(hex: attributes.buttonBackgroundColor ?? "fe5b25"))
+                .cornerRadius(12)
+            }
+            .buttonStyle(.plain)
+          }
         }
 
-        // Title
-        Text(contentState.title)
-          .font(.title3)
-          .fontWeight(.semibold)
-          .modifier(ConditionalForegroundViewModifier(color: attributes.titleColor))
-
-        // Timer
-        if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
-          ElapsedTimerText(
-            startTimeMilliseconds: startDate,
-            color: attributes.progressViewLabelColor.map { Color(hex: $0) },
-            pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
-            totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
-          )
-          .font(.title2)
-          .fontWeight(.semibold)
-        } else if contentState.hasSegmentedProgress,
-                  let currentStep = contentState.currentStep,
-                  let totalSteps = contentState.totalSteps,
-                  totalSteps > 0 {
-          SegmentedProgressView(
-            currentStep: currentStep,
-            totalSteps: totalSteps,
-            activeColor: attributes.segmentActiveColor,
-            inactiveColor: attributes.segmentInactiveColor
-          )
-        } else if let date = contentState.timerEndDateInMilliseconds {
-          Text(timerInterval: Date.toTimerInterval(miliseconds: date))
-            .font(.title2)
-            .fontWeight(.semibold)
-            .monospacedDigit()
-            .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
-        } else if let progress = contentState.progress {
-          ProgressView(value: progress)
-            .tint(progressViewTint)
-            .modifier(ConditionalForegroundViewModifier(color: attributes.progressViewLabelColor))
-        }
-
-        // Warning/limit message
+        // Row 2: "Recording..." label or warning message
         if let limitText = contentState.limitText {
           Text(limitText)
-            .font(.system(size: 14))
-            .foregroundStyle(Color(hex: "ff3b30"))
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(timerColor)
+        } else {
+          Text(contentState.title)
+            .font(.system(size: 16))
+            .foregroundStyle(Color(hex: "6A6A69"))
         }
       }
-      .frame(maxWidth: .infinity, alignment: .leading)
-
-      // Right column: Save button (vertically centered)
-      if let subtitle = contentState.subtitle, hasButton {
-        SubtitleButtonView(
-          subtitle: subtitle,
-          deepLinkUrl: attributes.deepLinkUrl,
-          buttonBackgroundColor: attributes.buttonBackgroundColor,
-          buttonTextColor: attributes.buttonTextColor
-        )
-      } else if let subtitle = contentState.subtitle {
-        Text(subtitle)
-          .font(.title3)
-          .modifier(ConditionalForegroundViewModifier(color: attributes.subtitleColor))
-      }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 14)
     }
-    .padding(padding)
+  }
+
+  private func makeDeepLinkURL(_ urlString: String?) -> URL? {
+    guard let urlString = urlString else { return nil }
+    return URL(string: urlString)
   }
 }
-
