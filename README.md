@@ -357,23 +357,64 @@ The value of each field can be:
 - a string which maps to an asset name
 - a URL to remote image - currently, it's possible to use this option only via API, but we plan on to add that feature to push notifications as well. It also requires adding "App Groups" capability to both "main app" and "Live Activity" targets.
 
-## expo-live-activity is created by Software Mansion
 
-[![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=typegpu-github 'Software Mansion')](https://swmansion.com)
+# Install
 
-Since 2012 [Software Mansion](https://swmansion.com) is a software agency with
-experience in building web and mobile apps. We are Core React Native
-Contributors and experts in dealing with all kinds of React Native issues. We
-can help you build your next dream product –
-[Hire us](https://swmansion.com/contact/projects?utm_source=typegpu&utm_medium=readme).
+npm install expo-live-activity@github:farzd/playbacks-live-activity#<comitt hash>
+in your app, so package-lock is updated with the correct version
 
-<!-- automd:contributors author="software-mansion" -->
 
-Made by [@software-mansion](https://github.com/software-mansion) and
-[community](https://github.com/software-mansion-labs/expo-live-activity/graphs/contributors) 💛
-<br><br>
-<a href="https://github.com/software-mansion-labs/expo-live-activity/graphs/contributors">
-<img src="https://contrib.rocks/image?repo=software-mansion-labs/expo-live-activity" />
-</a>
+### State Object Structure
 
-<!-- /automd -->
+The `state` object should include:
+
+```javascript
+{
+  title: string;
+  subtitle?: string;
+  date?: number; // Set as epoch time in milliseconds
+  imageName?: string; // Matches the name of the image in 'assets/live-activity'
+  dynamicIslandImageName?: string; // Matches the name of the image in 'assets/live-activity'
+  pausedAt?: number; // Set as epoch time in milliseconds to pause timer, null to resume
+  totalPausedDuration?: number; // Total time paused in milliseconds (cumulative across all pauses)
+  limitText?: string; // Optional warning text shown below timer (e.g., "60 min limit reached!")
+};
+```
+
+### Styles Object Structure
+
+The `styles` object should include:
+
+```typescript
+{
+   backgroundColor?: string;
+   titleColor?: string;
+   subtitleColor?: string;
+};
+```
+
+## Example Usage
+
+```javascript
+const state = {
+  title: "Recording",
+  subtitle: "This is a subtitle",
+  date: new Date(Date.now() + 60 * 1000 * 5).getTime(),
+  imageName: "live_activity_image",
+  dynamicIslandImageName: "dynamic_island_image",
+  pausedAt: null, // or Date.now() to pause the timer
+  totalPausedDuration: 0, // cumulative paused time in milliseconds
+  limitText: null, // or "60 min limit reached! Start a new one" to show warning
+};
+
+const styles = {
+  backgroundColor: "#FFFFFF",
+  titleColor: "#000000",
+  subtitleColor: "#333333",
+};
+
+const activityId = LiveActivity.startActivity(state, styles);
+// Store activityId for future reference
+```
+
+This will initiate a live activity with the specified title, subtitle, image from your configured assets folder and a time to which there will be a countdown in a progress 
