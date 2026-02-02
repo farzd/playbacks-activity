@@ -237,18 +237,14 @@ public struct LiveActivityWidget: Widget {
         }
         DynamicIslandExpandedRegion(.bottom) {
           VStack(alignment: .leading, spacing: 8) {
-            // Row 1: Timer (with dot) + Save button
+            // Row 1: Timer + Save button
             HStack(alignment: .center, spacing: 12) {
-              // Timer with red dot
+              // Timer
               HStack(spacing: 6) {
-                Circle()
-                  .fill(Color(hex: "ff3b30"))
-                  .frame(width: 8, height: 8)
-
                 if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
                   ElapsedTimerText(
                     startTimeMilliseconds: startDate,
-                    color: Color(hex: "ff3b30"),
+                    color: .white,
                     pausedAtInMilliseconds: context.state.pausedAtInMilliseconds,
                     totalPausedDurationInMilliseconds: context.state.totalPausedDurationInMilliseconds
                   )
@@ -256,7 +252,7 @@ public struct LiveActivityWidget: Widget {
                 } else if let date = context.state.timerEndDateInMilliseconds {
                   Text(timerInterval: Date.toTimerInterval(miliseconds: date))
                     .font(.system(size: 24, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color(hex: "ff3b30"))
+                    .foregroundStyle(.white)
                 }
               }
 
@@ -280,9 +276,16 @@ public struct LiveActivityWidget: Widget {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
             } else {
-              Text(context.state.title)
-                .font(.system(size: 14))
-                .foregroundStyle(.white)
+              HStack(spacing: 5) {
+                if context.state.pausedAtInMilliseconds == nil {
+                  Circle()
+                    .fill(Color(hex: "ff3b30"))
+                    .frame(width: 8, height: 8)
+                }
+                Text(context.state.title)
+                  .font(.system(size: 14))
+                  .foregroundStyle(.white)
+              }
             }
           }
           .padding(.horizontal, 5)

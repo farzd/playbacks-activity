@@ -12,7 +12,7 @@ struct LiveActivityMediumView: View {
   }
 
   private var timerColor: Color {
-    Color(hex: "ff3b30")
+    Color(hex: "000000")
   }
 
   var body: some View {
@@ -33,12 +33,8 @@ struct LiveActivityMediumView: View {
       VStack(alignment: .leading, spacing: 8) {
         // Row 1: Timer (with dot) + Save button
         HStack(alignment: .center, spacing: 16) {
-          // Timer with red dot
+          // Timer
           HStack(spacing: 8) {
-            Circle()
-              .fill(timerColor)
-              .frame(width: 10, height: 10)
-
             if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
               ElapsedTimerText(
                 startTimeMilliseconds: startDate,
@@ -58,8 +54,8 @@ struct LiveActivityMediumView: View {
               Text(subtitle)
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.white)
-                .padding(.horizontal, 36)
-                .padding(.vertical, 14)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 12)
                 .background(Color(hex: attributes.buttonBackgroundColor ?? "fe5b25"))
                 .cornerRadius(12)
             }
@@ -71,11 +67,18 @@ struct LiveActivityMediumView: View {
         if let limitText = contentState.limitText {
           Text(limitText)
             .font(.system(size: 16, weight: .semibold))
-            .foregroundStyle(timerColor)
-        } else {
-          Text(contentState.title)
-            .font(.system(size: 16))
             .foregroundStyle(Color(hex: "6A6A69"))
+        } else {
+          HStack(spacing: 6) {
+            if contentState.pausedAtInMilliseconds == nil {
+              Circle()
+                .fill(Color(hex: "ff3b30"))
+                .frame(width: 9, height: 9)
+            }
+            Text(contentState.title)
+              .font(.system(size: 16))
+              .foregroundStyle(Color(hex: "6A6A69"))
+          }
         }
       }
       .padding(.horizontal, 16)
