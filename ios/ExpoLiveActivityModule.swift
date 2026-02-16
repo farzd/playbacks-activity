@@ -51,6 +51,12 @@ public class ExpoLiveActivityModule: Module {
 
     @Field
     var limitText: String?
+
+    @Field
+    var deepLinkUrl: String?
+
+    @Field
+    var isInterrupted: Bool?
   }
 
   struct LiveActivityConfig: Record {
@@ -337,7 +343,9 @@ public class ExpoLiveActivityModule: Module {
           totalSteps: state.progressBar?.totalSteps,
           pausedAtInMilliseconds: state.pausedAt,
           totalPausedDurationInMilliseconds: state.totalPausedDuration,
-          limitText: state.limitText
+          limitText: state.limitText,
+          deepLinkUrl: state.deepLinkUrl,
+          isInterrupted: state.isInterrupted
         )
 
         let activity = try Activity.request(
@@ -387,7 +395,9 @@ public class ExpoLiveActivityModule: Module {
           totalSteps: state.progressBar?.totalSteps,
           pausedAtInMilliseconds: state.pausedAt,
           totalPausedDurationInMilliseconds: state.totalPausedDuration,
-          limitText: state.limitText
+          limitText: state.limitText,
+          deepLinkUrl: state.deepLinkUrl,
+          isInterrupted: state.isInterrupted
         )
         try await updateImages(state: state, newState: &newState)
         await activity.end(
@@ -426,7 +436,9 @@ public class ExpoLiveActivityModule: Module {
           totalSteps: state.progressBar?.totalSteps,
           pausedAtInMilliseconds: state.pausedAt,
           totalPausedDurationInMilliseconds: state.totalPausedDuration,
-          limitText: state.limitText
+          limitText: state.limitText,
+          deepLinkUrl: state.deepLinkUrl,
+          isInterrupted: state.isInterrupted
         )
         try await updateImages(state: state, newState: &newState)
         await activity.update(ActivityContent(state: newState, staleDate: nil))
