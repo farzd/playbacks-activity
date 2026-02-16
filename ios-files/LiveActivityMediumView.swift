@@ -8,7 +8,7 @@ struct LiveActivityMediumView: View {
   let alignedImage: (String, HorizontalAlignment, Bool) -> AnyView
 
   private var hasButton: Bool {
-    contentState.subtitle != nil && (attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil)
+    contentState.subtitle != nil && (attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil || contentState.deepLinkUrl != nil)
   }
 
   private var timerColor: Color {
@@ -31,26 +31,32 @@ struct LiveActivityMediumView: View {
 
       // Main content area
       VStack(alignment: .leading, spacing: 8) {
-        // Row 1: Timer (with dot) + Save button
+        // Row 1: Timer (or Interrupted text) + button
         HStack(alignment: .center, spacing: 16) {
-          // Timer
-          HStack(spacing: 8) {
-            if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
-              ElapsedTimerText(
-                startTimeMilliseconds: startDate,
-                color: timerColor,
-                pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
-                totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
-              )
-              .font(.system(size: 32, weight: .medium, design: .monospaced))
+          if contentState.isInterrupted == true {
+            Text("Interrupted")
+              .font(.system(size: 24, weight: .medium, design: .monospaced))
+              .foregroundStyle(timerColor)
+          } else {
+            // Timer
+            HStack(spacing: 8) {
+              if let startDate = contentState.elapsedTimerStartDateInMilliseconds {
+                ElapsedTimerText(
+                  startTimeMilliseconds: startDate,
+                  color: timerColor,
+                  pausedAtInMilliseconds: contentState.pausedAtInMilliseconds,
+                  totalPausedDurationInMilliseconds: contentState.totalPausedDurationInMilliseconds
+                )
+                .font(.system(size: 32, weight: .medium, design: .monospaced))
+              }
             }
           }
 
           Spacer()
 
-          // Save button
+          // Button: no deep link when interrupted (tap just opens app)
           if let subtitle = contentState.subtitle, hasButton {
-            Link(destination: makeDeepLinkURL(attributes.deepLinkUrl) ?? URL(string: "about:blank")!) {
+            if contentState.isInterrupted == true {
               Text(subtitle)
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.white)
@@ -58,19 +64,29 @@ struct LiveActivityMediumView: View {
                 .padding(.vertical, 12)
                 .background(Color(hex: attributes.buttonBackgroundColor ?? "fe5b25"))
                 .cornerRadius(12)
+            } else {
+              Link(destination: makeDeepLinkURL(contentState.deepLinkUrl ?? attributes.deepLinkUrl) ?? URL(string: "about:blank")!) {
+                Text(subtitle)
+                  .font(.system(size: 18, weight: .semibold))
+                  .foregroundStyle(Color.white)
+                  .padding(.horizontal, 32)
+                  .padding(.vertical, 12)
+                  .background(Color(hex: attributes.buttonBackgroundColor ?? "fe5b25"))
+                  .cornerRadius(12)
+              }
+              .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
           }
         }
 
-        // Row 2: "Recording..." label or warning message
+        // Row 2: label
         if let limitText = contentState.limitText {
           Text(limitText)
             .font(.system(size: 16, weight: .semibold))
             .foregroundStyle(Color(hex: "6A6A69"))
         } else {
           HStack(spacing: 6) {
-            if contentState.pausedAtInMilliseconds == nil {
+            if contentState.pausedAtInMilliseconds == nil && contentState.isInterrupted != true {
               Circle()
                 .fill(Color(hex: "ff3b30"))
                 .frame(width: 9, height: 9)

@@ -16,6 +16,8 @@ struct LiveActivityAttributes: ActivityAttributes {
     var pausedAtInMilliseconds: Double?
     var totalPausedDurationInMilliseconds: Double?
     var limitText: String?
+    var deepLinkUrl: String?
+    var isInterrupted: Bool?
   }
 
   var name: String

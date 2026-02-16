@@ -17,6 +17,8 @@ public struct LiveActivityAttributes: ActivityAttributes {
     var pausedAtInMilliseconds: Double?
     var totalPausedDurationInMilliseconds: Double?
     var limitText: String?
+    var deepLinkUrl: String?
+    var isInterrupted: Bool?
 
     public init(
       title: String,
@@ -31,7 +33,9 @@ public struct LiveActivityAttributes: ActivityAttributes {
       totalSteps: Int? = nil,
       pausedAtInMilliseconds: Double? = nil,
       totalPausedDurationInMilliseconds: Double? = nil,
-      limitText: String? = nil
+      limitText: String? = nil,
+      deepLinkUrl: String? = nil,
+      isInterrupted: Bool? = nil
     ) {
       self.title = title
       self.subtitle = subtitle
@@ -46,6 +50,8 @@ public struct LiveActivityAttributes: ActivityAttributes {
       self.pausedAtInMilliseconds = pausedAtInMilliseconds
       self.totalPausedDurationInMilliseconds = totalPausedDurationInMilliseconds
       self.limitText = limitText
+      self.deepLinkUrl = deepLinkUrl
+      self.isInterrupted = isInterrupted
     }
   }
 
@@ -237,47 +243,53 @@ public struct LiveActivityWidget: Widget {
         }
         DynamicIslandExpandedRegion(.bottom) {
           VStack(alignment: .leading, spacing: 8) {
-            // Row 1: Timer + Save button
+            // Row 1: Timer (or Interrupted text) + button
             HStack(alignment: .center, spacing: 12) {
-              // Timer
-              HStack(spacing: 6) {
-                if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
-                  ElapsedTimerText(
-                    startTimeMilliseconds: startDate,
-                    color: .white,
-                    pausedAtInMilliseconds: context.state.pausedAtInMilliseconds,
-                    totalPausedDurationInMilliseconds: context.state.totalPausedDurationInMilliseconds
-                  )
-                  .font(.system(size: 24, weight: .medium, design: .monospaced))
-                } else if let date = context.state.timerEndDateInMilliseconds {
-                  Text(timerInterval: Date.toTimerInterval(miliseconds: date))
+              if context.state.isInterrupted == true {
+                Text("Interrupted")
+                  .font(.system(size: 18, weight: .medium, design: .monospaced))
+                  .foregroundStyle(.white)
+              } else {
+                // Timer
+                HStack(spacing: 6) {
+                  if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
+                    ElapsedTimerText(
+                      startTimeMilliseconds: startDate,
+                      color: .white,
+                      pausedAtInMilliseconds: context.state.pausedAtInMilliseconds,
+                      totalPausedDurationInMilliseconds: context.state.totalPausedDurationInMilliseconds
+                    )
                     .font(.system(size: 24, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.white)
+                  } else if let date = context.state.timerEndDateInMilliseconds {
+                    Text(timerInterval: Date.toTimerInterval(miliseconds: date))
+                      .font(.system(size: 24, weight: .medium, design: .monospaced))
+                      .foregroundStyle(.white)
+                  }
                 }
               }
 
               Spacer()
 
-              // Save button
+              // Button: no deep link when interrupted (tap just opens app)
               if let subtitle = context.state.subtitle,
-                 context.attributes.buttonBackgroundColor != nil || context.attributes.deepLinkUrl != nil {
+                 context.attributes.buttonBackgroundColor != nil || context.attributes.deepLinkUrl != nil || context.state.deepLinkUrl != nil {
                 DynamicIslandSaveButton(
                   subtitle: subtitle,
-                  deepLinkUrl: context.attributes.deepLinkUrl,
+                  deepLinkUrl: context.state.isInterrupted == true ? nil : (context.state.deepLinkUrl ?? context.attributes.deepLinkUrl),
                   buttonBackgroundColor: context.attributes.buttonBackgroundColor,
                   buttonTextColor: context.attributes.buttonTextColor
                 )
               }
             }
 
-            // Row 2: "Recording..." label or warning message
+            // Row 2: label
             if let limitText = context.state.limitText {
               Text(limitText)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
             } else {
               HStack(spacing: 5) {
-                if context.state.pausedAtInMilliseconds == nil {
+                if context.state.pausedAtInMilliseconds == nil && context.state.isInterrupted != true {
                   Circle()
                     .fill(Color(hex: "ff3b30"))
                     .frame(width: 8, height: 8)
@@ -297,7 +309,14 @@ public struct LiveActivityWidget: Widget {
           .scaledToFit()
           .frame(maxWidth: 23, maxHeight: 23)
       } compactTrailing: {
-        if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
+        if context.state.isInterrupted == true {
+          Text(context.state.title)
+            .font(.system(size: 15))
+            .minimumScaleFactor(0.8)
+            .fontWeight(.semibold)
+            .frame(maxWidth: 60)
+            .multilineTextAlignment(.trailing)
+        } else if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
           ElapsedTimerText(
             startTimeMilliseconds: startDate,
             color: nil,
@@ -322,7 +341,12 @@ public struct LiveActivityWidget: Widget {
           )
         }
       } minimal: {
-        if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
+        if context.state.isInterrupted == true {
+          Text("!")
+            .font(.system(size: 11))
+            .fontWeight(.semibold)
+            .minimumScaleFactor(0.6)
+        } else if let startDate = context.state.elapsedTimerStartDateInMilliseconds {
           ElapsedTimerText(
             startTimeMilliseconds: startDate,
             color: context.attributes.progressViewTint.map { Color(hex: $0) },
