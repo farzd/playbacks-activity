@@ -103,6 +103,7 @@ import WidgetKit
   struct LiveActivityView: View {
     let contentState: LiveActivityAttributes.ContentState
     let attributes: LiveActivityAttributes
+    var isStale: Bool = false
     @State private var imageContainerSize: CGSize?
 
     var progressViewTint: Color? {
@@ -142,6 +143,7 @@ import WidgetKit
             LiveActivitySmallView(
               contentState: contentState,
               attributes: attributes,
+              isStale: isStale,
               imageContainerSize: $imageContainerSize,
               alignedImage: { imageName, horizontalAlignment, isSmallView in
                 AnyView(alignedImage(imageName: imageName, horizontalAlignment: horizontalAlignment, isSmallView: isSmallView))
@@ -152,6 +154,7 @@ import WidgetKit
             LiveActivityMediumView(
               contentState: contentState,
               attributes: attributes,
+              isStale: isStale,
               imageContainerSize: $imageContainerSize,
               alignedImage: { imageName, horizontalAlignment, isSmallView in
                 AnyView(alignedImage(imageName: imageName, horizontalAlignment: horizontalAlignment, isSmallView: isSmallView))
@@ -164,6 +167,7 @@ import WidgetKit
         LiveActivityMediumView(
           contentState: contentState,
           attributes: attributes,
+          isStale: isStale,
           imageContainerSize: $imageContainerSize,
           alignedImage: { imageName, horizontalAlignment, isSmallView in
             AnyView(alignedImage(imageName: imageName, horizontalAlignment: horizontalAlignment, isSmallView: isSmallView))

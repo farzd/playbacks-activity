@@ -4,8 +4,13 @@ import WidgetKit
 struct LiveActivityMediumView: View {
   let contentState: LiveActivityAttributes.ContentState
   let attributes: LiveActivityAttributes
+  var isStale: Bool = false
   @Binding var imageContainerSize: CGSize?
   let alignedImage: (String, HorizontalAlignment, Bool) -> AnyView
+
+  private var showInterrupted: Bool {
+    isStale || contentState.isInterrupted == true
+  }
 
   private var hasButton: Bool {
     contentState.subtitle != nil && (attributes.buttonBackgroundColor != nil || attributes.deepLinkUrl != nil || contentState.deepLinkUrl != nil)
@@ -33,7 +38,7 @@ struct LiveActivityMediumView: View {
       VStack(alignment: .leading, spacing: 8) {
         // Row 1: Timer (or Interrupted text) + button
         HStack(alignment: .center, spacing: 16) {
-          if contentState.isInterrupted == true {
+          if showInterrupted {
             Text("Interrupted")
               .font(.system(size: 24, weight: .medium, design: .monospaced))
               .foregroundStyle(timerColor)
@@ -56,8 +61,8 @@ struct LiveActivityMediumView: View {
 
           // Button: no deep link when interrupted (tap just opens app)
           if let subtitle = contentState.subtitle, hasButton {
-            if contentState.isInterrupted == true {
-              Text(subtitle)
+            if showInterrupted {
+              Text("Back")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.white)
                 .padding(.horizontal, 32)
@@ -86,12 +91,12 @@ struct LiveActivityMediumView: View {
             .foregroundStyle(Color(hex: "6A6A69"))
         } else {
           HStack(spacing: 6) {
-            if contentState.pausedAtInMilliseconds == nil && contentState.isInterrupted != true {
+            if contentState.pausedAtInMilliseconds == nil && !showInterrupted {
               Circle()
                 .fill(Color(hex: "ff3b30"))
                 .frame(width: 9, height: 9)
             }
-            Text(contentState.title)
+            Text(showInterrupted ? "Recording stopped unexpectedly" : contentState.title)
               .font(.system(size: 16))
               .foregroundStyle(Color(hex: "6A6A69"))
           }

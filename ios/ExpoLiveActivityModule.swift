@@ -2,6 +2,8 @@ import ActivityKit
 import ExpoModulesCore
 
 public class ExpoLiveActivityModule: Module {
+  private var heartbeatTimer: Timer?
+
   struct LiveActivityState: Record {
     @Field
     var title: String
@@ -444,5 +446,49 @@ public class ExpoLiveActivityModule: Module {
         await activity.update(ActivityContent(state: newState, staleDate: nil))
       }
     }
+
+    // Native heartbeat: periodically pushes staleDate forward on the Live Activity.
+    // When the app is suspended (e.g. media daemon crash kills audio session),
+    // the timer stops, staleDate passes, and the system renders the stale widget view.
+    Function("startHeartbeat") { (activityId: String, interval: Double, staleDateInterval: Double) in
+      guard #available(iOS 16.2, *) else { return }
+
+      self.stopHeartbeatTimer()
+      self.updateStaleDate(activityId: activityId, staleDateInterval: staleDateInterval)
+
+      DispatchQueue.main.async {
+        let timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
+          self?.updateStaleDate(activityId: activityId, staleDateInterval: staleDateInterval)
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        self.heartbeatTimer = timer
+        print("[ExpoLiveActivity] Heartbeat started: interval=\(interval)s, staleDate=\(staleDateInterval)s")
+      }
+    }
+
+    Function("stopHeartbeat") {
+      self.stopHeartbeatTimer()
+      print("[ExpoLiveActivity] Heartbeat stopped")
+    }
+  }
+
+  private func stopHeartbeatTimer() {
+    heartbeatTimer?.invalidate()
+    heartbeatTimer = nil
+  }
+
+  @available(iOS 16.2, *)
+  private func updateStaleDate(activityId: String, staleDateInterval: Double) {
+    guard
+      let activity = Activity<LiveActivityAttributes>.activities.first(where: {
+        $0.id == activityId
+      })
+    else { return }
+
+    let content = ActivityContent(
+      state: activity.content.state,
+      staleDate: Date().addingTimeInterval(staleDateInterval)
+    )
+    Task { try? await activity.update(content) }
   }
 }

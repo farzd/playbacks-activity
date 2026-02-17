@@ -234,6 +234,26 @@ export function updateActivity(id: string, state: LiveActivityState) {
 }
 
 /**
+ * Starts a native heartbeat that periodically pushes staleDate forward on the Live Activity.
+ * When the app is suspended (e.g. media daemon crash), the timer stops, staleDate passes,
+ * and the system renders the widget's stale view automatically.
+ *
+ * @param {string} activityId The identifier of the activity to heartbeat.
+ * @param {number} interval How often to update staleDate, in seconds (e.g. 30).
+ * @param {number} staleDateInterval How far ahead to set staleDate, in seconds (e.g. 60).
+ */
+export function startHeartbeat(activityId: string, interval: number, staleDateInterval: number) {
+  if (assertIOS('startHeartbeat')) return ExpoLiveActivityModule.startHeartbeat(activityId, interval, staleDateInterval)
+}
+
+/**
+ * Stops the native heartbeat timer. Call this when recording stops or pauses.
+ */
+export function stopHeartbeat() {
+  if (assertIOS('stopHeartbeat')) return ExpoLiveActivityModule.stopHeartbeat()
+}
+
+/**
  * @param {function} updateTokenListener The listener function that will be called when an update token is received.
  */
 export function addActivityTokenListener(

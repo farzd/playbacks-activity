@@ -7,6 +7,7 @@ import WidgetKit
   struct LiveActivitySmallView: View {
     let contentState: LiveActivityAttributes.ContentState
     let attributes: LiveActivityAttributes
+    var isStale: Bool = false
     @Binding var imageContainerSize: CGSize?
     let alignedImage: (String, HorizontalAlignment, Bool) -> AnyView
 

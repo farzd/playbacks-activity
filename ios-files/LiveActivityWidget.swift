@@ -224,7 +224,7 @@ struct DynamicIslandSaveButton: View {
 public struct LiveActivityWidget: Widget {
   public var body: some WidgetConfiguration {
     let baseConfiguration = ActivityConfiguration(for: LiveActivityAttributes.self) { context in
-      LiveActivityView(contentState: context.state, attributes: context.attributes)
+      LiveActivityView(contentState: context.state, attributes: context.attributes, isStale: context.isStale)
         .activityBackgroundTint(
           context.attributes.backgroundColor.map { Color(hex: $0) }
         )
@@ -242,10 +242,11 @@ public struct LiveActivityWidget: Widget {
           EmptyView()
         }
         DynamicIslandExpandedRegion(.bottom) {
+          let showInterrupted = context.isStale || context.state.isInterrupted == true
           VStack(alignment: .leading, spacing: 8) {
             // Row 1: Timer (or Interrupted text) + button
             HStack(alignment: .center, spacing: 12) {
-              if context.state.isInterrupted == true {
+              if showInterrupted {
                 Text("Interrupted")
                   .font(.system(size: 18, weight: .medium, design: .monospaced))
                   .foregroundStyle(.white)
@@ -274,8 +275,8 @@ public struct LiveActivityWidget: Widget {
               if let subtitle = context.state.subtitle,
                  context.attributes.buttonBackgroundColor != nil || context.attributes.deepLinkUrl != nil || context.state.deepLinkUrl != nil {
                 DynamicIslandSaveButton(
-                  subtitle: subtitle,
-                  deepLinkUrl: context.state.isInterrupted == true ? nil : (context.state.deepLinkUrl ?? context.attributes.deepLinkUrl),
+                  subtitle: showInterrupted ? "Back" : subtitle,
+                  deepLinkUrl: showInterrupted ? nil : (context.state.deepLinkUrl ?? context.attributes.deepLinkUrl),
                   buttonBackgroundColor: context.attributes.buttonBackgroundColor,
                   buttonTextColor: context.attributes.buttonTextColor
                 )
@@ -289,12 +290,12 @@ public struct LiveActivityWidget: Widget {
                 .foregroundStyle(.white)
             } else {
               HStack(spacing: 5) {
-                if context.state.pausedAtInMilliseconds == nil && context.state.isInterrupted != true {
+                if context.state.pausedAtInMilliseconds == nil && !showInterrupted {
                   Circle()
                     .fill(Color(hex: "ff3b30"))
                     .frame(width: 8, height: 8)
                 }
-                Text(context.state.title)
+                Text(showInterrupted ? "Recording stopped unexpectedly" : context.state.title)
                   .font(.system(size: 14))
                   .foregroundStyle(.white)
               }
@@ -309,7 +310,7 @@ public struct LiveActivityWidget: Widget {
           .scaledToFit()
           .frame(maxWidth: 23, maxHeight: 23)
       } compactTrailing: {
-        if context.state.isInterrupted == true {
+        if context.isStale || context.state.isInterrupted == true {
           Text(context.state.title)
             .font(.system(size: 15))
             .minimumScaleFactor(0.8)
@@ -341,7 +342,7 @@ public struct LiveActivityWidget: Widget {
           )
         }
       } minimal: {
-        if context.state.isInterrupted == true {
+        if context.isStale || context.state.isInterrupted == true {
           Text("!")
             .font(.system(size: 11))
             .fontWeight(.semibold)
