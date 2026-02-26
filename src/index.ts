@@ -254,6 +254,14 @@ export function stopHeartbeat() {
 }
 
 /**
+ * Ends all running Live Activities. Use this to clean up orphaned activities
+ * from a previous session (e.g. after the app was force-killed).
+ */
+export function endAllActivities() {
+  if (assertIOS('endAllActivities')) return ExpoLiveActivityModule.endAllActivities()
+}
+
+/**
  * @param {function} updateTokenListener The listener function that will be called when an update token is received.
  */
 export function addActivityTokenListener(

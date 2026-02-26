@@ -470,6 +470,17 @@ public class ExpoLiveActivityModule: Module {
       self.stopHeartbeatTimer()
       print("[ExpoLiveActivity] Heartbeat stopped")
     }
+
+    Function("endAllActivities") {
+      guard #available(iOS 16.2, *) else { return }
+      let activities = Activity<LiveActivityAttributes>.activities
+      print("[ExpoLiveActivity] Ending \(activities.count) orphaned activit\(activities.count == 1 ? "y" : "ies")")
+      for activity in activities {
+        Task {
+          await activity.end(nil, dismissalPolicy: .immediate)
+        }
+      }
+    }
   }
 
   private func stopHeartbeatTimer() {
